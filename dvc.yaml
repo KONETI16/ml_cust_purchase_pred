@@ -1,0 +1,29 @@
+# Automated pipeline blueprint
+stages:
+  preprocess:
+    cmd: python src/preprocess.py
+    deps:
+      - src/preprocess.py
+      - data/Purchase_dataset.csv
+    params:
+      - preprocess.test_size
+      - preprocess.random_state
+    outs:
+      - data/X_train_scaled.npy
+      - data/X_test_scaled.npy
+      - data/y_train.npy
+      - data/y_test.npy
+      - customer_pipeline_base.pkl  # Saves the scaler skeleton stage
+
+  train:
+    cmd: python src/train.py
+    deps:
+      - src/train.py
+      - data/X_train_scaled.npy
+      - data/y_train.npy
+      - customer_pipeline_base.pkl
+    params:
+      - train.random_state
+      - train.solver
+    outs:
+      - customer_pipeline.pkl  # Updates final pipeline artifact with model weights

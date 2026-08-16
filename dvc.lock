@@ -1,0 +1,66 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python src/preprocess.py
+    deps:
+    - path: data/Purchase_dataset.csv
+      hash: md5
+      md5: 0c2c45ffe85714b511716e56474db30e
+      size: 1258
+    - path: src/preprocess.py
+      hash: md5
+      md5: 449fe6394a1f75d8e927f152e7e50fb4
+      size: 1399
+    params:
+      params.yaml:
+        preprocess.random_state: 42
+        preprocess.test_size: 0.2
+    outs:
+    - path: customer_pipeline_base.pkl
+      hash: md5
+      md5: ac0795bb3239871d29fe8bfc0900adc9
+      size: 712
+    - path: data/X_test_scaled.npy
+      hash: md5
+      md5: 4013aff097ae4f415162f28f1da16ced
+      size: 464
+    - path: data/X_train_scaled.npy
+      hash: md5
+      md5: 80b4cec89a4d43f5db4bbb8653bf7b64
+      size: 1424
+    - path: data/y_test.npy
+      hash: md5
+      md5: 26eea10e816617cfe1639698218efb47
+      size: 296
+    - path: data/y_train.npy
+      hash: md5
+      md5: 1bdac06ca7513b024d8ca5c3a188af3f
+      size: 776
+  train:
+    cmd: python src/train.py
+    deps:
+    - path: customer_pipeline_base.pkl
+      hash: md5
+      md5: ac0795bb3239871d29fe8bfc0900adc9
+      size: 712
+    - path: data/X_train_scaled.npy
+      hash: md5
+      md5: 80b4cec89a4d43f5db4bbb8653bf7b64
+      size: 1424
+    - path: data/y_train.npy
+      hash: md5
+      md5: 1bdac06ca7513b024d8ca5c3a188af3f
+      size: 776
+    - path: src/train.py
+      hash: md5
+      md5: f7c75a7517ecf3845ad7ad4c114217ec
+      size: 886
+    params:
+      params.yaml:
+        train.random_state: 42
+        train.solver: lbfgs
+    outs:
+    - path: customer_pipeline.pkl
+      hash: md5
+      md5: f24b0c809676ce2f49822a00ce32c1a7
+      size: 1295
