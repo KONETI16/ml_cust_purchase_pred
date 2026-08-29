@@ -32,10 +32,27 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install DVC and Pull Data
+    - name: Install DVC
       run: |
+        python -m pip install --upgrade pip
         pip install dvc
-        # If your remote is a local folder, you will need to map a cloud remote or pass credentials
+
+    - name: Show DVC config and remotes
+      run: |
+        echo "--- .dvc/config (if present) ---"
+        if [ -f .dvc/config ]; then cat .dvc/config; else echo "No .dvc/config file found"; fi
+        echo "--- dvc remote list ---"
+        dvc remote list || true
+
+    - name: Pull DVC Data (guarded)
+      run: |
+        # Detect common local-path remotes and skip in CI with explanatory message.
+        if [ -f .dvc/config ] && grep -q "UsersprakaDocumentsProjectsdvc_remote_storage" .dvc/config; then
+          echo "DVC remote appears to be a local path that is not accessible from GitHub Actions."
+          echo "Configure a cloud remote (s3/gcs/azure) and add credentials as secrets, or commit required runtime artifacts."
+          echo "Skipping dvc pull to allow image build. To fail instead, update the workflow."
+          exit 0
+        fi
         dvc pull
 
     # Step 4: Automate container building and image pushing
