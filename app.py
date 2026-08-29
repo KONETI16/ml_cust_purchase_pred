@@ -10,32 +10,22 @@ from pydantic import BaseModel, Field
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("ProductionLogger")
 
-# Make MLflow configuration optional via env var to support containerized runs.
-# If the variable is unset, default to the local tracking server used by the
-# development workflow. An explicit empty string still disables MLflow.
-_tracking_uri_env = os.environ.get("MLFLOW_TRACKING_URI")
-if _tracking_uri_env is None:
-    MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
-    logger.info("MLFLOW_TRACKING_URI not set; defaulting to local MLflow server at %s", MLFLOW_TRACKING_URI)
-elif _tracking_uri_env.strip():
-    MLFLOW_TRACKING_URI = _tracking_uri_env.strip()
-    logger.info("MLFLOW_TRACKING_URI set to %s", MLFLOW_TRACKING_URI)
-else:
-    MLFLOW_TRACKING_URI = ""
-    logger.info("MLFLOW_TRACKING_URI explicitly empty; MLflow logging disabled.")
-
-USE_MLFLOW = bool(MLFLOW_TRACKING_URI)
-
-if USE_MLFLOW:
-    try:
-        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-        mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT", "Customer_Purchase_Prediction_Experiment"))
-        logger.info("MLflow configured. Tracking URI: %s, Experiment: %s", MLFLOW_TRACKING_URI, os.getenv("MLFLOW_EXPERIMENT", "Customer_Purchase_Prediction_Experiment"))
-    except Exception as e:
-        logger.warning("Failed to configure MLflow tracking server; MLflow logging disabled. Error: %s", e)
+# Configure MLflow tracking dynamically from environment (works in Docker Compose)
+# Dynamically fall back to local execution if the environment variable isn't injected
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+try:
+    if TRACKING_URI:
+        mlflow.set_tracking_uri(TRACKING_URI)
+        # Use a stable experiment name for inference monitoring
+        mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT", "Customer_Inference_Monitoring"))
+        USE_MLFLOW = True
+        logger.info("MLflow configured. Tracking URI: %s, Experiment: %s", TRACKING_URI, os.getenv("MLFLOW_EXPERIMENT", "Customer_Inference_Monitoring"))
+    else:
         USE_MLFLOW = False
-else:
-    logger.info("MLflow tracking URI not set; MLflow logging disabled.")
+        logger.info("MLFLOW_TRACKING_URI explicitly empty; MLflow logging disabled.")
+except Exception as e:
+    USE_MLFLOW = False
+    logger.warning("Failed to configure MLflow; MLflow logging disabled. Error: %s", e)
 
 
 class CustomerData(BaseModel):

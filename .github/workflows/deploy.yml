@@ -27,6 +27,17 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
+    - name: Set up Python for DVC
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install DVC and Pull Data
+      run: |
+        pip install dvc
+        # If your remote is a local folder, you will need to map a cloud remote or pass credentials
+        dvc pull
+
     # Step 4: Automate container building and image pushing
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v5

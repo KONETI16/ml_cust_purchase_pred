@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  #Service A: The mlflow tracking server
+  mlflow_server:
+    image: mlflow/mlflow:2.9.1
+    container_name: mlflow_server
+    ports:
+      - "5000:5000"
+    environment:
+      MLFLOW_ARTIFACT_URI: /app/mlruns
+    volumes:
+      - ./mlruns:/app/mlruns
+    working_dir: /app
+
+    command: >
+      sh -c "pip install mlflow && \
+             mlflow server --host 0.0.0.0 --port 5000 \
+                --backend-store-uri sqlite:////app/mlruns/mlflow.db \
+                --default-artifact-root /app/mlruns"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  #Service B: The FastAPI application
+  fastapi_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow_server:5000
+    depends_on:
+      mlflow_server:
+        condition: service_healthy
+

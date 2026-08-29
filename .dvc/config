@@ -1,0 +1,4 @@
+[core]
+    remote = myremote
+['remote "myremote"']
+    url = ../UsersprakaDocumentsProjectsdvc_remote_storage

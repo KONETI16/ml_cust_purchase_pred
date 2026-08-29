@@ -1,0 +1,5 @@
+outs:
+- md5: 0c2c45ffe85714b511716e56474db30e
+  size: 1258
+  hash: md5
+  path: Purchase_dataset.csv
