@@ -24,6 +24,12 @@ mlflow_stub.log_param = lambda *a, **k: None
 mlflow_stub.log_metric = lambda *a, **k: None
 sys.modules['mlflow'] = mlflow_stub
 
+# Ensure project root is on sys.path so tests can import app
+import os
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 from app import app
 
 
